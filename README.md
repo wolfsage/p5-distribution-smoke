@@ -2,7 +2,7 @@
 
 Distribution::Smoke - smoke various versions of a distribution against modules down the river from it
 
-# USAGE:
+## USAGE:
 
 Currently, it's hardcoded to test Dist::Zilla against it's plugins (this will change...)
 
