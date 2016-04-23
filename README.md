@@ -4,33 +4,28 @@ Distribution::Smoke - smoke various versions of a distribution against modules d
 
 ## USAGE:
 
-Currently, it's hardcoded to test Dist::Zilla against it's plugins (this will change...)
+     ./dist-smoke.pl <dist@ver1> <dist@ver2> <search_spec> <output_dir>
 
-Install version of Dist::Zilla you want to test, then:
+For example:
 
-    ./m.pl old
+      ./dist-smoke.pl Dist::Zilla@5.047 Dist::Zilla@6.000 'Dist::Zilla::Plugin::Readme*' results 
 
-This will chug for a long time, writing out results to old/.
+This will chug for a couple of minutes and be fairly verbose, then it will generate a report that looks like:
 
-When that finishes, install the newer Dist::Zilla, then:
+     Generating report...
+     Report:
+     =======
+     
+	     Now failing:
+     
+		    Dist::Zilla::Plugin::ReadmeMarkdownFromPod
+		    Dist::Zilla::Plugin::ReadmeAnyFromPod
+     
+     
+     2 distributions continued to pass
+     1 distributions continued to fail
 
-    ./m.pl new
-
-When that finishes:
-
-    ./c.pl old/ new/
-    Report:
-    =======
-    
-    Now failing:
-    
-    		Dist::Zilla::Plugin::ReadmeAnyFromPod
-    		Dist::Zilla::Plugin::ReadmeMarkdownFromPod
-    
-    2 distributions continued to pass
-    1 distributions continued to fail
-
-It will output:
+It will output (for anything that has any information):
 
  * Dists that now pass
  * Dists that now fail
@@ -38,8 +33,35 @@ It will output:
  * Dists that pass/fail that don't exist in the second run
  * A count of dists that continued to pass
  * A count of dists that continued to fail
- 
- 
+
+## What it does:
+
+ * Creates the requested build directory
+ * Installs the first version of the distribution requested
+ * Installs all matching distributions to <search_spec> from MetaCPAN::Client
+ * Generates some reports and meta files
+ * Installs the second version of the distribution requested
+ * Repeates the previous two steps
+ * Generates a report comparing pass/fail statistics
+
+## Generated directory:
+
+For the example above:
+
+     ./results
+     ./results/Dist-Zilla-5.047
+     ./results/Dist-Zilla-5.047/passed     - cpanm reports, one per distribution
+     ./results/Dist-Zilla-5.047/failed     - cpanm reports, one per distribution    
+     ./results/Dist-Zilla-5.047/lib        - cpanm local lib (-l option)
+     ./results/Dist-Zilla-5.047/pass.txt   - list of distributions that passed
+     ./results/Dist-Zilla-5.047/fail.txt   - list of distributions that failed
+     ./results/Dist-Zilla-6.000
+     ./results/Dist-Zilla-6.000/passed     - ...
+     ./results/Dist-Zilla-6.000/failed     - ...
+     ./results/Dist-Zilla-6.000/lib        - ...
+     ./results/Dist-Zilla-6.000/pass.txt   - ...
+     ./results/Dist-Zilla-60000/fail.txt   - ....
+
 # TODO
 
  * Allow you to say 
