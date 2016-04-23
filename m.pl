@@ -18,7 +18,7 @@ mkdir "$dir/passed" or die "failed to mkdir $dir/passed: $!\n";
 # simple usage
 my $mcpan  = MetaCPAN::Client->new();
 
-my $m = $mcpan->distribution({ name => 'Dist-Zilla-Plugin' });
+my $m = $mcpan->distribution({ name => 'Dist-Zilla-Plugin*' });
 
 my %distros;
 while (my $thing = $m->next) {
