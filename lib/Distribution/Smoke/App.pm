@@ -26,14 +26,15 @@ has smoker => (
 sub _build_opt_spec {
   return [
     '%c %o <thing-to-smoke>',
-    [ 'additional-module|a=s@', "module to smoke" ],
+    [ 'additional-module|a=s@', "modules to smoke" ],
     [ 'clean', "clean all previous runs from the data dir" ],
-    [ 'config|c=s', "Config file to parse default options from" ],
+    [ 'config|c=s', "config file to parse default options from" ],
     [ 'ls|l',  "list all previous runs in the data dir" ],
-    [ 'reverse-dependencies|r', "Test reverse dependencies" ],
-    [ 'depth|d=i', "Go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
+    [ 'reverse-dependencies|r', "test reverse dependencies" ],
+    [ 'depth|d=i', "go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
       { implies => 'reverse_dependencies' },
     ],
+    [ 'skip|s=s@', "regular expressions of modules to not smoke" ],
     [],
     [ 'verbose|v!', "verbose output" ],
     [ 'help|h', "print usage info and exit" ],
@@ -90,6 +91,8 @@ sub run {
   unless ($opt->additional_module || $opt->reverse_dependencies) {
     die "Missing distributions to test against our distribution\n";
   }
+
+  $smoker->skip_filters($opt->skip || []);
 
   # XXX - Resolve distributions and modules-to-be-tested before
   #       building anything
