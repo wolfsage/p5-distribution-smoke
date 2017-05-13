@@ -31,6 +31,9 @@ sub _build_opt_spec {
     [ 'config|c=s', "config file to parse default options from" ],
     [ 'ls|l',  "list all previous runs in the data dir" ],
     [ 'reverse-dependencies|r', "test reverse dependencies" ],
+    [ 'name-for-reverse|n=s@', "dist names to add when searching for reverse dependencies",
+      { implies => 'reverse_dependencies' },
+    ],
     [ 'depth|d=i', "go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
       { implies => 'reverse_dependencies' },
     ],
@@ -93,6 +96,7 @@ sub run {
   }
 
   $smoker->skip_filters($opt->skip || []);
+  $smoker->name_for_reverse($opt->name_for_reverse || []);
 
   # XXX - Resolve distributions and modules-to-be-tested before
   #       building anything

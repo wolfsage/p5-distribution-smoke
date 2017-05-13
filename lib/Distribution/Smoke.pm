@@ -27,6 +27,12 @@ has skip_filters => (
   default => sub { [] },
 );
 
+has name_for_reverse => (
+  is => 'rw',
+  isa => ArrayRef,
+  default => sub { [] },
+);
+
 has test_reverse_dependencies_depth => (
   is => 'rw',
   isa => Int,
@@ -345,7 +351,7 @@ sub _resolve_reverse_dependencies {
 
   $self->log("Checking reverse dependencies...");
 
-  my @work;
+  my @work = @{$self->name_for_reverse};
 
   for my $base_dist (@{$self->dists}) {
     if ($base_dist->{file_based}) {
