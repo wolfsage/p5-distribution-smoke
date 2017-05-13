@@ -86,7 +86,6 @@ sub build_base_distributions {
   for my $dist (@$distributions) {
     for my $name ($self->_resolve_dists($dist)) {
       push @dists, {
-        # XXX - For dirs/files, get name?
         name => $name,
         dist => $dist,
       };
@@ -166,11 +165,18 @@ sub _resolve_dists_metacpan {
 sub _build_dist_dir {
   my ($self, $dist) = @_;
 
-  $self->log_verbose("Building dist dir:", $dist->{name});
+  my $dir = $dist->{name};
+  if (ref $dir) {
+    $dir =~ s|/|-|g;
+    $dir =~ s/^-//;
+    $dir =~ s/-$//;
+  }
 
-  my $base = $self->_mkpath($dist->{name});
+  $self->log_verbose("Building dist dir:", $dir);
 
-  $self->_mkpath($dist->{name}, $_) for qw(base-install passed failed);
+  my $base = $self->_mkpath($dir);
+
+  $self->_mkpath($dir, $_) for qw(base-install passed failed);
 
   return $base;
 }
