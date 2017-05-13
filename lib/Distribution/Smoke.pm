@@ -265,7 +265,7 @@ sub log {
 
   $str =~ s/\n+$//g;
 
-  print $str . "\n";
+  $self->_print($str . "\n");
 }
 
 sub logx {
@@ -276,7 +276,7 @@ sub logx {
 
   $str =~ s/\n+$//g;
 
-  print $str;
+  $self->_print($str);
 }
 
 sub log_verbose {
@@ -284,6 +284,12 @@ sub log_verbose {
 
   return unless $self->verbose;
   return $self->log("V:", @_);
+}
+
+sub _print {
+  my $self = shift;
+
+  print "@_";
 }
 
 sub clean {
