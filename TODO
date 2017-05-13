@@ -1,3 +1,5 @@
+ skip
+ reverse_deps
  git resolver
  portability
  config

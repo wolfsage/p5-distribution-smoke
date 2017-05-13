@@ -179,7 +179,6 @@ sub _build_dist {
   my ($self, $dist) = @_;
 
   # XXX - Build this higher and cache for quicker smokes later?
-  # XXX - Use Path::Tiny for all paths for portability
   my $ipath = $dist->{dir} . "/base-install";
   my $lpath = $ipath . ".log";
 
