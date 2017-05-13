@@ -63,13 +63,13 @@ has verbose => (
 sub _mkpath {
   my ($self, @path) = @_;
 
-  my $path = join("/", @path);
+  my $path = path(@path);
 
-  my $p = $self->data_dir . "/" . $self->base_dir . "/" . $path;
+  my $p = path($self->data_dir, $self->base_dir, $path);
   $self->log_verbose("mkpath:", $p);
 
   return try {
-    my $child = $self->data_dir_obj->child($self->base_dir . "/" . $path);
+    my $child = $self->data_dir_obj->child($self->base_dir, $path);
     die "directory exists!" if $child->exists;
     $child->mkpath;
     $child;
@@ -86,6 +86,7 @@ sub build_base_distributions {
   for my $dist (@$distributions) {
     for my $name ($self->_resolve_dists($dist)) {
       push @dists, {
+        # XXX - For dirs/files, get name?
         name => $name,
         dist => $dist,
       };
@@ -112,10 +113,30 @@ sub _resolve_dists {
 
   $self->log("Resolving distribution:", $dist) unless $quiet;
 
+  if (my $path = $self->_resolve_dist_file($dist)) {
+    return $path;
+  }
+
   # For now, metacpan only
   return $self->_resolve_dists_metacpan($dist);
 }
 
+sub _resolve_dist_file {
+  my ($self, $file) = @_;
+
+  my $dist = path($file);
+
+  # Looks like a path? good enough?
+  if ($dist =~ /^\./ || $dist =~ /^\//) {
+    unless ($dist->exists) {
+      die "Cannot resolve $file, does not exist!";
+    }
+
+    return $dist;
+  }
+
+  return;
+}
 sub _resolve_dists_metacpan {
   my ($self, $dist) = @_;
 
@@ -166,9 +187,16 @@ sub _build_dist {
 
   my $res = `$cmd`;
   my $exit = $?;
+  $res ||= "<none>";
 
   if ($exit) {
-    die "...failed to install $dist->{name}, giving up. Exit: $exit; Output: $res\n";
+    die ("
+Failed to install $dist->{name}, giving up.
+Exit: $exit
+Output: $res
+You may want to look at $lpath for more info
+"
+    );
   }
 
   return path($ipath);
@@ -225,7 +253,7 @@ sub test_distributions {
 
     my ($p, $f) = (0+ keys %passed, 0+ keys %failed);
     my $total = $p + $f;
-    $self->log("Passed with $p out of $total distributions ($f failures)");
+    $self->log("$p out of $total distributions passed ($f failures)");
   }
 }
 
