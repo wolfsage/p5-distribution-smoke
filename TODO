@@ -1,9 +1,8 @@
- skip
- reverse_deps
+ skips for reverse_deps
+ reverse_deps support for file/git based dists
  git resolver
- portability
  config
  cpanm args
  allow skipping specific mods/versions
-
-
+ cache reverse deps?
+ tests
