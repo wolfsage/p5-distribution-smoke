@@ -1,3 +1,5 @@
+ compare
+ save functionality (-s)
  skips for reverse_deps
  reverse_deps support for file/git based dists
  git resolver
