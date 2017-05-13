@@ -286,4 +286,16 @@ sub log_verbose {
   return $self->log("V:", @_);
 }
 
+sub clean {
+  my ($self) = @_;
+
+  $self->log("Cleaning " . $self->data_dir);
+
+  for my $child ($self->data_dir_obj->children) {
+    $self->log_verbose("Removing", $child);
+
+    $child->remove_tree({ safe => 0 });
+  }
+}
+
 1;
