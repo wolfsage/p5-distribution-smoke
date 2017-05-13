@@ -1,0 +1,75 @@
+# Smoke a tarbal against reverse deps
+  p5-distribution-smoke ./PPI-0.01.tar.gz -r
+
+# Smoke a directory against reverse deps
+  p5-distribution-smoke . -r
+
+# Smoke a distribution against a tarball on the web
+  p5-distribution-smoke https://path/to/tarball.tar.gz -r
+
+# Smoke a distribution against a git repo
+  p5-distribution-smoke -g git@github.com:user/repo.git -r
+
+# Smoke a distribution against different blobs in a git repo
+  p5-distribution-smoke . -r -t <tag> -t <master> -t <sha>
+
+# Against reverse deps, one level deep
+  p5-distribution-smoke PPI -r
+
+# Against reverse deps, two levels deep
+  p5-distribution-smoke PPI -r 2
+
+# Against reverse deps, 10 highest on the river
+  p5-distribution-smoke PPI -R 
+
+# Against reverse deps, 8 hightest on the river
+  p5-distribution-smoke PPI -R 8
+
+# Against reverse deps, and specific mods
+  p5-distribution-smoke PPI -r -a Dist::Zilla -a Perl::Critic
+
+# Against specific deps
+  p5-distribution-smoke PPI -a Dist::Zilla -a Perl::Critic
+
+# Against search spec
+  p5-distribution-smoke PPI -a Dist::Zilla::*
+
+# Save a copy of results
+  p5-distribution-smoke PPI -r -s PPI1
+
+# Compare results
+  p5-distribution-smoke -c <dir1> -c <dir2> [...]
+
+# Smoke and compare
+  p5-distribution-smoke PPI PPI~v2 -r -C
+
+# List cached results
+  p5-distribution-smoke --ls (-l)
+
+# Clear cache
+  p5-distributin-smoke --clean
+
+# Use fresh (clean) dirs for each test
+  p5-distribution-smoke PPI -r -f
+
+# Use list of mods
+  p5-distribution-smoke PPI -A mods.txt
+
+# Use config
+  p5-distribution-smoke -x smoke.conf 
+
+# Use config, merge with command line args
+  p5-distribution-smoke -x smoke.conf -a Another::Module
+
+# Verbose
+  p5-distribution-smoke PPI -r -v
+
+# Parallel testing against mods (implies -f)
+  p5-distribution-smoke PPI -r -j 8
+
+# Parallel testing per main mod being tested
+  p5-distribution-smoke PPI PPI2 -r -J 2
+
+# Parallel testing per main mod and per testing mods (implies -f)
+  p5-distribution-smoke PPI PPI2 -r -J2 -J8
+
