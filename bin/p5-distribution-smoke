@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+use Moo;
+
+use lib qw(lib/); # XXX - Remove
+
+use Distribution::Smoke::App;
+Distribution::Smoke::App->new->run;
