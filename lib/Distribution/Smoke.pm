@@ -221,7 +221,7 @@ sub _build_dist {
 
   $self->log("Building dist", $dist->{name}, "in dir", $ipath);
 
-  my $cmd = "cpanm -L $ipath --verbose $dist->{name} > $lpath 2>&1";
+  my $cmd = "cpanm -l $ipath --verbose $dist->{name} > $lpath 2>&1";
   $self->log_verbose("Running", $cmd);
 
   my $res = `$cmd`;
