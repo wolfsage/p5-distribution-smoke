@@ -27,6 +27,7 @@ sub _build_opt_spec {
   return [
     '%c %o <thing-to-smoke>',
     [ 'additional-module|a=s@', "module to smoke" ],
+    [ 'clean', "clean all previous runs from the data dir" ],
     [],
     [ 'verbose|v', "verbose output" ],
     [ 'help|h', "print usage info and exit" ],
@@ -39,6 +40,15 @@ sub run {
   my ($opt, $usage) = describe_options(@{$self->opt_spec});
   print($usage->text), exit if $opt->help;
 
+  my $smoker = $self->smoker;
+  $smoker->verbose($opt->verbose);
+
+  if ($opt->clean) {
+    $smoker->clean;
+
+    exit;
+  }
+
   unless (@ARGV) {
     die "Missing distributions to smoke!\n";
   }
@@ -46,10 +56,6 @@ sub run {
   unless ($opt->additional_module) {
     die "Missing distributions to test against our distribution\n";
   }
-
-  my $smoker = $self->smoker;
-
-  $smoker->verbose($opt->verbose);
 
   # XXX - Resolve distributions and modules-to-be-tested before
   #       building anything
