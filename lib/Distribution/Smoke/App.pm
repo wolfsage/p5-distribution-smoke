@@ -32,7 +32,7 @@ sub _build_opt_spec {
     [ 'ls|l',  "list all previous runs in the data dir" ],
     [ 'reverse-dependencies|r', "Test reverse dependencies" ],
     [ 'depth|d=i', "Go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
-      { default => 1, implies => 'reverse_dependencies' },
+      { implies => 'reverse_dependencies' },
     ],
     [],
     [ 'verbose|v!', "verbose output" ],
@@ -80,7 +80,7 @@ sub run {
   }
 
   if ($opt->reverse_dependencies) {
-    $smoker->test_reverse_dependencies_depth($opt->depth);
+    $smoker->test_reverse_dependencies_depth($opt->depth || 1);
   }
 
   unless (@ARGV) {
