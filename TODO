@@ -1,3 +1,6 @@
+
+ Instaed of cpanm -L, cpanm --testonly then cpanm --install -f 
+
  compare
  save functionality (-s)
  reverse_deps support for file/git based dists
