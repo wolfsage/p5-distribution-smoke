@@ -28,6 +28,7 @@ sub _build_opt_spec {
     '%c %o <thing-to-smoke>',
     [ 'additional-module|a=s@', "module to smoke" ],
     [ 'clean', "clean all previous runs from the data dir" ],
+    [ 'ls|l',  "list all previous runs in the data dir" ],
     [],
     [ 'verbose|v', "verbose output" ],
     [ 'help|h', "print usage info and exit" ],
@@ -45,6 +46,12 @@ sub run {
 
   if ($opt->clean) {
     $smoker->clean;
+
+    exit;
+  }
+
+  if ($opt->ls) {
+    $smoker->ls;
 
     exit;
   }
