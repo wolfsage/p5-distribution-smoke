@@ -21,6 +21,12 @@ has data_dir => (
   }
 );
 
+has test_reverse_dependencies_depth => (
+  is => 'rw',
+  isa => Int,
+  default => 0,
+);
+
 has base_dir => (
   is => 'rw',
   isa => Str,
@@ -88,6 +94,7 @@ sub build_base_distributions {
       push @dists, {
         name => $name,
         dist => $dist,
+        file_based => ref($name) ? 1 : 0,
       };
     }
   }
@@ -219,6 +226,25 @@ You may want to look at $lpath for more info
 
 sub test_distributions {
   my ($self, $distributions) = @_;
+  $distributions ||= [];
+
+  my @to_test;
+
+  for my $to_test (@$distributions) {
+    for my $dist ($self->_resolve_dists($to_test, "quiet")) {
+      push @to_test, $dist;
+    }
+  }
+
+  if ($self->test_reverse_dependencies_depth) {
+    push @to_test, $self->_resolve_reverse_dependencies;
+  }
+
+  unless (@to_test) {
+    $self->log("No dists to test with!");
+
+    return;
+  }
 
   for my $base_dist (@{$self->dists}) {
     my %failed;
@@ -227,35 +253,35 @@ sub test_distributions {
 
     $self->log("Smoking $base_dist->{name}...");
 
-    for my $to_test (@$distributions) {
-      for my $dist ($self->_resolve_dists($to_test, "quiet")) {
-        $self->logx("\tTesting $dist...");
+    for my $dist (@to_test) {
+      my $dpath = $self->_dist_name_path($dist);
 
-        # XXX - Write to temp file, move into place (save memory)
-        my $cmd = "cpanm -l $ipath --test-only --verbose $to_test 2>&1";
-        $self->log_verbose("\tRunning", $cmd);
+      $self->logx("\tTesting $dist...");
 
-        my $res = `$cmd`;
-        my $exit = $?;
+      # XXX - Write to temp file, move into place (save memory)
+      my $cmd = "cpanm -l $ipath --test-only --verbose $dist 2>&1";
+      $self->log_verbose("\tRunning", $cmd);
 
-        my $report;
+      my $res = `$cmd`;
+      my $exit = $?;
 
-        if ($exit) {
-          $report = path($base_dist->{dir})->child("failed")->child("$dist.txt");
+      my $report;
 
-          $failed{$dist}++;
+      if ($exit) {
+        $report = path($base_dist->{dir})->child("failed")->child("$dpath.txt");
 
-          $self->log("FAIL!");
-        } else {
-          $report = path($base_dist->{dir})->child("passed")->child("$dist.txt");
+        $failed{$dist}++;
 
-          $passed{$dist}++;
+        $self->log("FAIL!");
+      } else {
+        $report = path($base_dist->{dir})->child("passed")->child("$dpath.txt");
 
-          $self->log("PASS!");
-        }
+        $passed{$dist}++;
 
-        $report->spew($res);
+        $self->log("PASS!");
       }
+
+      $report->spew($res);
     }
 
     path($base_dist->{dir})->child("failed.txt")->spew(
@@ -270,6 +296,59 @@ sub test_distributions {
     my $total = $p + $f;
     $self->log("$p out of $total distributions passed ($f failures)");
   }
+}
+
+sub _resolve_reverse_dependencies {
+  my $self = shift;
+
+  $self->log("Checking reverse dependencies...");
+
+  my @work;
+
+  for my $base_dist (@{$self->dists}) {
+    if ($base_dist->{file_based}) {
+      $self->log("\tSkipping $base_dist->{name}, currently cannot determine file-based dist names!");
+
+      next;
+    }
+    push @work, $base_dist->{name};
+  }
+
+  unless (@work) {
+    $self->log("\tNo viable dists to search reverse deps for, skipping");
+
+    return;
+  }
+
+  my %deps;
+
+  my $depth = $self->test_reverse_dependencies_depth;
+
+  $self->log("Checking reverse dependencies for @work, $depth levels deep");
+
+  for my $level (1..$depth) {
+    $self->log_verbose("\tChecking depth level $level");
+
+    for my $dist (@work) {
+      $self->log_verbose("\t\tChecking $dist");
+
+      my $deps = $self->mcpan->rev_deps($dist);
+      my @found;
+
+      while (my $dep = $deps->next) {
+        push @found, $dep->distribution;
+      }
+
+      $self->log_verbose("\t\t\tFound deps: @found");
+
+      $deps{$level}{$_} = 1 for @found;
+    }
+
+    @work = keys %{ $deps{$level} };
+  }
+
+  # XXX - Sort by level then by key for consistency
+  return map { keys %$_ } values %deps;
 }
 
 sub log {

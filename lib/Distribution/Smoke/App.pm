@@ -29,6 +29,10 @@ sub _build_opt_spec {
     [ 'additional-module|a=s@', "module to smoke" ],
     [ 'clean', "clean all previous runs from the data dir" ],
     [ 'ls|l',  "list all previous runs in the data dir" ],
+    [ 'reverse-dependencies|r', "Test reverse dependencies" ],
+    [ 'depth|d=i', "Go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
+      { default => 1, implies => 'reverse_dependencies' },
+    ],
     [],
     [ 'verbose|v', "verbose output" ],
     [ 'help|h', "print usage info and exit" ],
@@ -56,11 +60,15 @@ sub run {
     exit;
   }
 
+  if ($opt->reverse_dependencies) {
+    $smoker->test_reverse_dependencies_depth($opt->depth);
+  }
+
   unless (@ARGV) {
     die "Missing distributions to smoke!\n";
   }
 
-  unless ($opt->additional_module) {
+  unless ($opt->additional_module || $opt->reverse_dependencies) {
     die "Missing distributions to test against our distribution\n";
   }
 
