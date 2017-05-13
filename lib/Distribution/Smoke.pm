@@ -21,6 +21,12 @@ has data_dir => (
   }
 );
 
+has skip_filters => (
+  is => 'rw',
+  isa => ArrayRef,
+  default => sub { [] },
+);
+
 has test_reverse_dependencies_depth => (
   is => 'rw',
   isa => Int,
@@ -169,6 +175,16 @@ sub _resolve_dists_metacpan {
   return keys %dists;
 }
 
+sub _skip_dist {
+  my ($self, $dist) = @_;
+
+  return unless @{ $self->skip_filters };
+
+  for my $filter (@{ $self->skip_filters }) {
+    return $filter if $dist =~ qr/$filter/;
+  }
+}
+
 sub _build_dist_dir {
   my ($self, $dist) = @_;
 
@@ -240,11 +256,36 @@ sub test_distributions {
     push @to_test, $self->_resolve_reverse_dependencies;
   }
 
+  if (@{ $self->skip_filters }) {
+    my @really_test;
+
+    $self->log("Filtering out skips using @{ $self->skip_filters } ");
+
+    for my $dist (@to_test) {
+      if (my $skip = $self->_skip_dist($dist)) {
+        $self->log("\t...skipping $dist because of skip rule '$skip'");
+
+        next;
+      }
+
+      push @really_test, $dist;
+    }
+
+    @to_test = @really_test;
+  }
+
   unless (@to_test) {
     $self->log("No dists to test with!");
 
     return;
   }
+
+  $self->log("Smoking these modules: @to_test");
+
+  my $dist_count = 0+ @{ $self->dists };
+  my $test_dist_count = 0+@to_test;
+
+  $self->log("Smoking $dist_count dists with $test_dist_count modules");
 
   for my $base_dist (@{$self->dists}) {
     my %failed;
@@ -326,6 +367,10 @@ sub _resolve_reverse_dependencies {
 
   $self->log("Checking reverse dependencies for @work, $depth levels deep");
 
+  # XXX - Skip ones we already found that may point to an upper depth.
+  #       For example, if we are scanning A's reverse deps, and its dep
+  #       'B' has a dep 'C' that also depends directly on 'A', don't rescan
+  #       'A'.
   for my $level (1..$depth) {
     $self->log_verbose("\tChecking depth level $level");
 
@@ -336,10 +381,19 @@ sub _resolve_reverse_dependencies {
       my @found;
 
       while (my $dep = $deps->next) {
-        push @found, $dep->distribution;
+        my $dist = $dep->distribution;
+        $dist =~ s/-/::/g;
+
+        if (my $skip = $self->_skip_dist($dist)) {
+          $self->log("\t\t...skipping $dist because of skip rule '$skip'");
+
+          next;
+        }
+
+        push @found, $dist;
       }
 
-      $self->log_verbose("\t\t\tFound deps: @found");
+      $self->log_verbose("\t\tFound deps: @found");
 
       $deps{$level}{$_} = 1 for @found;
     }
@@ -359,6 +413,8 @@ sub log {
 
   $str =~ s/\n+$//g;
 
+  $str =~ s/\t/  /g;
+
   $self->_print($str . "\n");
 }
 
@@ -369,6 +425,8 @@ sub logx {
   $str =~ s/\n\s+$/\n/;
 
   $str =~ s/\n+$//g;
+
+  $str =~ s/\t/  /g;
 
   $self->_print($str);
 }

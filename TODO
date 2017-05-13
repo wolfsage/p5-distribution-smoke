@@ -1,9 +1,9 @@
  compare
  save functionality (-s)
- skips for reverse_deps
  reverse_deps support for file/git based dists
  git resolver
  cpanm args
  allow skipping specific mods/versions
  cache reverse deps?
  tests
+ ignore skips or 'always test' option?
