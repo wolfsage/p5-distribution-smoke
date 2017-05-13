@@ -207,6 +207,7 @@ sub _dist_name_path {
     $dist =~ s/^-//;
     $dist =~ s/-$//;
   }
+  $dist =~ s/::/-/g;
 
   return $dist;
 }
