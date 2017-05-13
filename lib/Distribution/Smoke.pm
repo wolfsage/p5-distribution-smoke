@@ -114,11 +114,14 @@ sub _resolve_dists {
   $self->log("Resolving distribution:", $dist) unless $quiet;
 
   if (my $path = $self->_resolve_dist_file($dist)) {
+    $self->log("Resolved to path $path");
+
     return $path;
   }
 
-  # For now, metacpan only
-  return $self->_resolve_dists_metacpan($dist);
+  my @dists = $self->_resolve_dists_metacpan($dist);
+  $self->log("Resolved to dists from metacpan: @dists");
+  return @dists;
 }
 
 sub _resolve_dist_file {
@@ -290,6 +293,18 @@ sub _print {
   my $self = shift;
 
   print "@_";
+}
+
+sub ls {
+  my ($self) = @_;
+
+  $self->log($self->data_dir);
+
+  for my $run (reverse sort $self->data_dir_obj->children) {
+    for my $dist ($run->children) {
+      $self->log($dist)
+    }
+  }
 }
 
 sub clean {
