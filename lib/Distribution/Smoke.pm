@@ -165,12 +165,7 @@ sub _resolve_dists_metacpan {
 sub _build_dist_dir {
   my ($self, $dist) = @_;
 
-  my $dir = $dist->{name};
-  if (ref $dir) {
-    $dir =~ s|/|-|g;
-    $dir =~ s/^-//;
-    $dir =~ s/-$//;
-  }
+  my $dir = $self->_dist_name_path($dist->{name});
 
   $self->log_verbose("Building dist dir:", $dir);
 
@@ -179,6 +174,18 @@ sub _build_dist_dir {
   $self->_mkpath($dir, $_) for qw(base-install passed failed);
 
   return $base;
+}
+
+sub _dist_name_path {
+  my ($self, $dist) = @_;
+
+  if (ref $dist) {
+    $dist =~ s|/|-|g;
+    $dist =~ s/^-//;
+    $dist =~ s/-$//;
+  }
+
+  return $dist;
 }
 
 sub _build_dist {
