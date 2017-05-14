@@ -231,7 +231,7 @@ sub _build_dist {
 
   $self->log("Building dist", $dist->{name}, "in dir", $ipath);
 
-  my $cmd = "cpanm -l $ipath --verbose $dist->{name} > $lpath 2>&1";
+  my $cmd = "cpanm -l $ipath --verbose $dist->{name} --no-interactive > $lpath 2>&1";
   $self->log_verbose("Running", $cmd);
 
   my $res = `$cmd`;
@@ -321,7 +321,7 @@ sub test_distributions {
       }
       else {
         # XXX - Write to temp file, move into place (save memory)
-        my $cmd = "cpanm -l $ipath --test-only --verbose $dist 2>&1";
+        my $cmd = "cpanm -l $ipath --test-only --verbose $dist --no-interactive 2>&1";
         $self->log_verbose("\tRunning", $cmd);
 
         $res = `$cmd`;
