@@ -88,8 +88,7 @@ sub _mkpath {
 
   return try {
     my $child = $self->data_dir_obj->child($self->base_dir, $path);
-    die "directory exists!" if $child->exists;
-    $child->mkpath;
+    $child->mkpath if not $child->exists;
     $child;
   } catch {
     die "Failed to create $path: $_\n",
@@ -225,6 +224,11 @@ sub _build_dist {
   my $ipath = $dist->{dir} . "/base-install";
   my $lpath = $ipath . ".log";
 
+  if ( -d "$ipath/lib" ) {
+    $self->log("Dist $dist->{name} already built in $ipath, proceeding to smoke.");
+    return path($ipath);
+  }
+
   $self->log("Building dist", $dist->{name}, "in dir", $ipath);
 
   my $cmd = "cpanm -l $ipath --verbose $dist->{name} > $lpath 2>&1";
@@ -305,31 +309,43 @@ sub test_distributions {
       my $dpath = $self->_dist_name_path($dist);
 
       $self->logx("\tTesting $dist ... ");
+      my ($pass_report, $fail_report) = map path($base_dist->{dir})->child($_)->child("$dpath.txt"), qw( passed failed );
+      my ($exit, $res, $already_done);
 
-      # XXX - Write to temp file, move into place (save memory)
-      my $cmd = "cpanm -l $ipath --test-only --verbose $dist 2>&1";
-      $self->log_verbose("\tRunning", $cmd);
+      if($pass_report->exists) {
+        $already_done = 1;
+      }
+      elsif($fail_report->exists) {
+        $already_done = $exit = 1;
+      }
+      else {
+        # XXX - Write to temp file, move into place (save memory)
+        my $cmd = "cpanm -l $ipath --test-only --verbose $dist 2>&1";
+        $self->log_verbose("\tRunning", $cmd);
 
-      my $res = `$cmd`;
-      my $exit = $?;
+        $res = `$cmd`;
+        $exit = $?;
+      }
+
+      $self->logx("already done ... ") if $already_done;
 
       my $report;
 
       if ($exit) {
-        $report = path($base_dist->{dir})->child("failed")->child("$dpath.txt");
+        $report = $fail_report;
 
         $failed{$dist}++;
 
         $self->log("FAIL!");
       } else {
-        $report = path($base_dist->{dir})->child("passed")->child("$dpath.txt");
+        $report = $pass_report;
 
         $passed{$dist}++;
 
         $self->log("PASS!");
       }
 
-      $report->spew($res);
+      $report->spew($res) if not $already_done;
     }
 
     path($base_dist->{dir})->child("failed.txt")->spew(

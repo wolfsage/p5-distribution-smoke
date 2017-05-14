@@ -34,6 +34,7 @@ sub _build_opt_spec {
     [ 'name-for-reverse|n=s@', "dist names to add when searching for reverse dependencies",
       { implies => 'reverse_dependencies' },
     ],
+    [ 'base-dir|b=s', "name of the sub dir to run the set of smokes in, defaults to \$\$" ],
     [ 'depth|d=i', "go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
       { implies => 'reverse_dependencies' },
     ],
@@ -69,6 +70,7 @@ sub run {
   }
 
   my $smoker = $self->smoker;
+  $smoker->base_dir($opt->base_dir) if $opt->base_dir;
   $smoker->verbose($opt->verbose);
 
   if ($opt->clean) {
