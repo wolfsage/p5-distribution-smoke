@@ -1,3 +1,4 @@
+ cpanm --no-interactive and AUTOMATED_TESTING=1 (check for others)
  compare
  save functionality (-s)
  reverse_deps support for file/git based dists
