@@ -69,6 +69,9 @@ sub run {
     });
   }
 
+  $ENV{PERL_MM_USE_DEFAULT} = $ENV{AUTOMATED_TESTING} = $ENV{PERL_MM_NONINTERACTIVE} = 1;
+  open STDIN, '<', File::Spec->devnull; # won't somebody think of the children?!
+
   my $smoker = $self->smoker;
   $smoker->base_dir($opt->base_dir) if $opt->base_dir;
   $smoker->verbose($opt->verbose);
