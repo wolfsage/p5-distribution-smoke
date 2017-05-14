@@ -357,6 +357,10 @@ sub test_distributions {
       join("\n", keys %passed),
     );
 
+    path($base_dist->{dir})->child("combined.txt")->spew(
+      sort join "\n", map( "$_\t0", keys %failed ), map( "$_\t1", keys %passed )
+    );
+
     my ($p, $f) = (0+ keys %passed, 0+ keys %failed);
     my $total = $p + $f;
     $self->log("$p out of $total distributions passed ($f failures)");
