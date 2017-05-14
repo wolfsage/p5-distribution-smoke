@@ -175,7 +175,7 @@ sub _resolve_dists_metacpan {
 
     $dists{$name} = 1;
 
-    $self->log_verbose("\t...found", $name);
+    $self->log_verbose("\t... found", $name);
   }
 
   return keys %dists;
@@ -270,7 +270,7 @@ sub test_distributions {
 
     for my $dist (@to_test) {
       if (my $skip = $self->_skip_dist($dist)) {
-        $self->log("\t...skipping $dist because of skip rule '$skip'");
+        $self->log("\t... skipping $dist because of skip rule '$skip'");
 
         next;
       }
@@ -299,12 +299,12 @@ sub test_distributions {
     my %passed;
     my $ipath = $base_dist->{base_install};
 
-    $self->log("Smoking $base_dist->{name}...");
+    $self->log("Smoking $base_dist->{name} ...");
 
     for my $dist (@to_test) {
       my $dpath = $self->_dist_name_path($dist);
 
-      $self->logx("\tTesting $dist...");
+      $self->logx("\tTesting $dist ... ");
 
       # XXX - Write to temp file, move into place (save memory)
       my $cmd = "cpanm -l $ipath --test-only --verbose $dist 2>&1";
@@ -349,7 +349,7 @@ sub test_distributions {
 sub _resolve_reverse_dependencies {
   my $self = shift;
 
-  $self->log("Checking reverse dependencies...");
+  $self->log("Checking reverse dependencies ...");
 
   my @work = @{$self->name_for_reverse};
 
@@ -392,7 +392,7 @@ sub _resolve_reverse_dependencies {
         $dist =~ s/-/::/g;
 
         if (my $skip = $self->_skip_dist($dist)) {
-          $self->log("\t\t...skipping $dist because of skip rule '$skip'");
+          $self->log("\t\t... skipping $dist because of skip rule '$skip'");
 
           next;
         }
