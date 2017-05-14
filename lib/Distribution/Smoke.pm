@@ -257,6 +257,7 @@ sub test_distributions {
 
   my @to_test;
 
+  $self->log("Resolving distribution to smoke ...");
   for my $to_test (@$distributions) {
     for my $dist ($self->_resolve_dists($to_test, "quiet")) {
       push @to_test, $dist;
