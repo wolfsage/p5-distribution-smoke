@@ -358,7 +358,7 @@ sub test_distributions {
     );
 
     path($base_dist->{dir})->child("combined.txt")->spew(
-      sort join "\n", map( "$_\t0", keys %failed ), map( "$_\t1", keys %passed )
+      join "\n", sort map( "$_\t0", keys %failed ), map( "$_\t1", keys %passed )
     );
 
     my ($p, $f) = (0+ keys %passed, 0+ keys %failed);
