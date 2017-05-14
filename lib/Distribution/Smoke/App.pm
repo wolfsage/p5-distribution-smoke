@@ -31,6 +31,10 @@ sub _build_opt_spec {
     [ 'config|c=s', "config file to parse default options from" ],
     [ 'ls|l',  "list all previous runs in the data dir" ],
     [ 'reverse-dependencies|r', "test reverse dependencies" ],
+    [ 'name-for-reverse|n=s@', "dist names to add when searching for reverse dependencies",
+      { implies => 'reverse_dependencies' },
+    ],
+    [ 'base-dir|b=s', "name of the sub dir to run the set of smokes in, defaults to \$\$" ],
     [ 'depth|d=i', "go <n> levels deep when looking for reverse deps. (default 1. Implies reverse_dependencies)",
       { implies => 'reverse_dependencies' },
     ],
@@ -65,7 +69,11 @@ sub run {
     });
   }
 
+  $ENV{PERL_MM_USE_DEFAULT} = $ENV{AUTOMATED_TESTING} = $ENV{PERL_MM_NONINTERACTIVE} = 1;
+  open STDIN, '<', File::Spec->devnull; # won't somebody think of the children?!
+
   my $smoker = $self->smoker;
+  $smoker->base_dir($opt->base_dir) if $opt->base_dir;
   $smoker->verbose($opt->verbose);
 
   if ($opt->clean) {
@@ -93,6 +101,7 @@ sub run {
   }
 
   $smoker->skip_filters($opt->skip || []);
+  $smoker->name_for_reverse($opt->name_for_reverse || []);
 
   # XXX - Resolve distributions and modules-to-be-tested before
   #       building anything

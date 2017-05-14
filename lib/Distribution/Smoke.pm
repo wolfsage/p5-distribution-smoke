@@ -27,6 +27,12 @@ has skip_filters => (
   default => sub { [] },
 );
 
+has name_for_reverse => (
+  is => 'rw',
+  isa => ArrayRef,
+  default => sub { [] },
+);
+
 has test_reverse_dependencies_depth => (
   is => 'rw',
   isa => Int,
@@ -82,8 +88,7 @@ sub _mkpath {
 
   return try {
     my $child = $self->data_dir_obj->child($self->base_dir, $path);
-    die "directory exists!" if $child->exists;
-    $child->mkpath;
+    $child->mkpath if not $child->exists;
     $child;
   } catch {
     die "Failed to create $path: $_\n",
@@ -169,7 +174,7 @@ sub _resolve_dists_metacpan {
 
     $dists{$name} = 1;
 
-    $self->log_verbose("\t...found", $name);
+    $self->log_verbose("\t... found", $name);
   }
 
   return keys %dists;
@@ -207,6 +212,7 @@ sub _dist_name_path {
     $dist =~ s/^-//;
     $dist =~ s/-$//;
   }
+  $dist =~ s/::/-/g;
 
   return $dist;
 }
@@ -218,9 +224,14 @@ sub _build_dist {
   my $ipath = $dist->{dir} . "/base-install";
   my $lpath = $ipath . ".log";
 
+  if ( -d "$ipath/lib" ) {
+    $self->log("Dist $dist->{name} already built in $ipath, proceeding to smoke.");
+    return path($ipath);
+  }
+
   $self->log("Building dist", $dist->{name}, "in dir", $ipath);
 
-  my $cmd = "cpanm -L $ipath --verbose $dist->{name} > $lpath 2>&1";
+  my $cmd = "cpanm -l $ipath --verbose $dist->{name} --no-interactive > $lpath 2>&1";
   $self->log_verbose("Running", $cmd);
 
   my $res = `$cmd`;
@@ -246,6 +257,7 @@ sub test_distributions {
 
   my @to_test;
 
+  $self->log("Resolving distribution to smoke ...");
   for my $to_test (@$distributions) {
     for my $dist ($self->_resolve_dists($to_test, "quiet")) {
       push @to_test, $dist;
@@ -263,7 +275,7 @@ sub test_distributions {
 
     for my $dist (@to_test) {
       if (my $skip = $self->_skip_dist($dist)) {
-        $self->log("\t...skipping $dist because of skip rule '$skip'");
+        $self->log("\t... skipping $dist because of skip rule '$skip'");
 
         next;
       }
@@ -292,37 +304,49 @@ sub test_distributions {
     my %passed;
     my $ipath = $base_dist->{base_install};
 
-    $self->log("Smoking $base_dist->{name}...");
+    $self->log("Smoking $base_dist->{name} ...");
 
     for my $dist (@to_test) {
       my $dpath = $self->_dist_name_path($dist);
 
-      $self->logx("\tTesting $dist...");
+      $self->logx("\tTesting $dist ... ");
+      my ($pass_report, $fail_report) = map path($base_dist->{dir})->child($_)->child("$dpath.txt"), qw( passed failed );
+      my ($exit, $res, $already_done);
 
-      # XXX - Write to temp file, move into place (save memory)
-      my $cmd = "cpanm -l $ipath --test-only --verbose $dist 2>&1";
-      $self->log_verbose("\tRunning", $cmd);
+      if($pass_report->exists) {
+        $already_done = 1;
+      }
+      elsif($fail_report->exists) {
+        $already_done = $exit = 1;
+      }
+      else {
+        # XXX - Write to temp file, move into place (save memory)
+        my $cmd = "cpanm -l $ipath --test-only --verbose $dist --no-interactive 2>&1";
+        $self->log_verbose("\tRunning", $cmd);
 
-      my $res = `$cmd`;
-      my $exit = $?;
+        $res = `$cmd`;
+        $exit = $?;
+      }
+
+      $self->logx("already done ... ") if $already_done;
 
       my $report;
 
       if ($exit) {
-        $report = path($base_dist->{dir})->child("failed")->child("$dpath.txt");
+        $report = $fail_report;
 
         $failed{$dist}++;
 
         $self->log("FAIL!");
       } else {
-        $report = path($base_dist->{dir})->child("passed")->child("$dpath.txt");
+        $report = $pass_report;
 
         $passed{$dist}++;
 
         $self->log("PASS!");
       }
 
-      $report->spew($res);
+      $report->spew($res) if not $already_done;
     }
 
     path($base_dist->{dir})->child("failed.txt")->spew(
@@ -331,6 +355,10 @@ sub test_distributions {
 
     path($base_dist->{dir})->child("passed.txt")->spew(
       join("\n", keys %passed),
+    );
+
+    path($base_dist->{dir})->child("combined.txt")->spew(
+      join "\n", sort map( "$_\t0", keys %failed ), map( "$_\t1", keys %passed )
     );
 
     my ($p, $f) = (0+ keys %passed, 0+ keys %failed);
@@ -342,9 +370,9 @@ sub test_distributions {
 sub _resolve_reverse_dependencies {
   my $self = shift;
 
-  $self->log("Checking reverse dependencies...");
+  $self->log("Checking reverse dependencies ...");
 
-  my @work;
+  my @work = @{$self->name_for_reverse};
 
   for my $base_dist (@{$self->dists}) {
     if ($base_dist->{file_based}) {
@@ -385,7 +413,7 @@ sub _resolve_reverse_dependencies {
         $dist =~ s/-/::/g;
 
         if (my $skip = $self->_skip_dist($dist)) {
-          $self->log("\t\t...skipping $dist because of skip rule '$skip'");
+          $self->log("\t\t... skipping $dist because of skip rule '$skip'");
 
           next;
         }
