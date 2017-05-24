@@ -18,3 +18,4 @@
  Perhaps let someone specify since the benefit of -L is all deps (non-core)
  will be installed which makes it a self-contained place to run tests in the
  future even if you've updated things on your system..
+ support versioned searches
