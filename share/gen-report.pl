@@ -32,24 +32,28 @@ my %fail_now;
 my $passed;
 my $failed;
 
-for my $p (keys %pass1) {
-  if (delete $fail2{$p}) {
-    $fail_now{$p} = 1;
-  } elsif (!delete $pass2{$p}) {
-    $pass_lost{$p} = 1;
-  } else {
-    $passed++;
-  }
+for my $p ( keys %pass1 ) {
+    if ( delete $fail2{$p} ) {
+        $fail_now{$p} = 1;
+    }
+    elsif ( !delete $pass2{$p} ) {
+        $pass_lost{$p} = 1;
+    }
+    else {
+        $passed++;
+    }
 }
 
-for my $f (keys %fail1) {
-  if (delete $pass2{$f}) {
-    $pass_now{$f} = 1;
-  } elsif (!delete $fail2{$f}) {
-    $fail_lost{$f} = 1;
-  } else {
-    $failed++;
-  }
+for my $f ( keys %fail1 ) {
+    if ( delete $pass2{$f} ) {
+        $pass_now{$f} = 1;
+    }
+    elsif ( !delete $fail2{$f} ) {
+        $fail_lost{$f} = 1;
+    }
+    else {
+        $failed++;
+    }
 }
 
 %pass_new = %pass2;
@@ -59,68 +63,68 @@ print "Report:\n";
 print "=======";
 
 if (%pass_now) {
-  print "\n\n\tNow passing:\n\n";
+    print "\n\n\tNow passing:\n\n";
 
-  for my $k (keys %pass_now) {
-    print "\t\t$k\n";
-  }
+    for my $k ( keys %pass_now ) {
+        print "\t\t$k\n";
+    }
 }
 
 if (%fail_now) {
-  print "\n\n\tNow failing:\n\n";
+    print "\n\n\tNow failing:\n\n";
 
-  for my $k (keys %fail_now) {
-    print "\t\t$k\n";
-  }
+    for my $k ( keys %fail_now ) {
+        print "\t\t$k\n";
+    }
 }
 
 if (%pass_new) {
-  print "\n\n\tNew passes? (not in original run at all\n\n";
+    print "\n\n\tNew passes? (not in original run at all\n\n";
 
-  for my $k (keys %pass_new) {
-    print "\t\t$k\n";
-  }
+    for my $k ( keys %pass_new ) {
+        print "\t\t$k\n";
+    }
 }
 
 if (%fail_new) {
-  print "\n\n\tNew fails? (not in original run at all\n\n";
+    print "\n\n\tNew fails? (not in original run at all\n\n";
 
-  for my $k (keys %fail_new) {
-    print "\t\t$k\n";
-  }
+    for my $k ( keys %fail_new ) {
+        print "\t\t$k\n";
+    }
 }
 
 if (%pass_lost) {
-  print "\n\n\tLost passes? (not in new run at all\n\n";
+    print "\n\n\tLost passes? (not in new run at all\n\n";
 
-  for my $k (keys %pass_lost) {
-    print "\t\t$k\n";
-  }
+    for my $k ( keys %pass_lost ) {
+        print "\t\t$k\n";
+    }
 }
 
 if (%fail_lost) {
-  print "\n\n\tLost fails? (not in new run at all\n\n";
+    print "\n\n\tLost fails? (not in new run at all\n\n";
 
-  for my $k (keys %pass_lost) {
-    print "\t\t$k\n";
-  }
+    for my $k ( keys %pass_lost ) {
+        print "\t\t$k\n";
+    }
 }
 
 print "\n\n$passed distributions continued to pass\n";
 print "$failed distributions continued to fail\n";
 
 sub fillin {
-  my $file = shift;
+    my $file = shift;
 
-  my @res;
+    my @res;
 
-  open(my $fh, '<', $file) or die "Failed to topen $file: $!\n";
-  while (<$fh>) {
-    chomp;
-    next unless /\w/;
-    
-    push @res, $_;
-  }
+    open( my $fh, '<', $file ) or die "Failed to topen $file: $!\n";
+    while (<$fh>) {
+        chomp;
+        next unless /\w/;
 
-  return map { $_ => 1 } @res;
+        push @res, $_;
+    }
+
+    return map { $_ => 1 } @res;
 }
