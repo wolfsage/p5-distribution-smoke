@@ -2,12 +2,11 @@ package Distribution::Smoke;
 
 # ABSTRACT: Smoke distributions against other dists that use them
 
-use strict;
-use warnings;
+use strictures 2;
 
 use MetaCPAN::Client;
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base ':all';
 
 use Path::Tiny;
 use Try::Tiny;

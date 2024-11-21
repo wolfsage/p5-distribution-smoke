@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
-use strict;
-use warnings;
+use strictures 2;
 
 use Data::Dumper;
 

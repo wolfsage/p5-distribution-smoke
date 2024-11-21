@@ -1,12 +1,11 @@
 package Distribution::Smoke::App;
 
-use strict;
-use warnings;
+use strictures 2;
 
 use Distribution::Smoke;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base ':all';
 
 use Path::Tiny;
 use Try::Tiny;

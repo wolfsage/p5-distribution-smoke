@@ -1,12 +1,11 @@
 #!/usr/bin/perl
 
-use strict;
-use warnings;
+use strictures 2;
 
 use MetaCPAN::Client;
 use Data::Dumper;
 
-use File::Path qw(make_path);
+use File::Path 'make_path';
 
 my $mod1 = shift;
 my $mod2 = shift;
